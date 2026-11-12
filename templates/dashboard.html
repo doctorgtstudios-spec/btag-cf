@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% block title %}my stuff — BTag CF{% endblock %}
 {% block content %}
-<p class="eyebrow">🐒 MONKEY HQ</p>
+<p class="eyebrow">MONKEY HQ</p>
 <h1>yo, {{ g.user['username'] }}!</h1>
 <p class="lead">This is your little corner of the jungle.</p>
 <section class="panel">
-  <h2>🔗 your future backend link</h2>
+  <h2>your future backend link</h2>
   <code>https://btag-cf.com/{{ g.user['username'] }}/api/</code>
   <p class="muted">This link is a preview for now. Backend hosting isn't turned on yet.</p>
 </section>
 <section class="panel">
-  <h2>🍌 make a backend</h2>
+  <h2>make a backend</h2>
   <form method="post" action="{{ url_for('create_project') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label for="template_key">what are we building?</label>
@@ -29,19 +29,19 @@
   </form>
   <p class="muted">Making a project saves its settings. It doesn't start Python yet. We're still building the safe hosting bit.</p>
 </section>
-<h2>📦 your backends</h2>
+<h2>your backends</h2>
 {% if projects %}
   {% for project in projects %}
   <section class="panel project">
     <div>
-      <h3>{{ '🐒 Gorilla Tag backend' if project['template_key'] == 'gorilla_tag_full' else '🧪 Flask starter' }}</h3>
+      <h3>{{ 'Gorilla Tag backend' if project['template_key'] == 'gorilla_tag_full' else 'Flask starter' }}</h3>
       <p class="muted">#{{ project['id'] }} · {{ project['hosting_mode']|title }} · Title ID: {{ project['title_id'] or 'not added' }}</p>
       <code>https://btag-cf.com/{{ g.user['username'] }}/api/</code>
     </div>
-    <span class="status">🛠️ saved · not running</span>
+    <span class="status">saved · not running</span>
   </section>
   {% endfor %}
 {% else %}
-  <section class="panel"><p class="muted">No backends yet. It's a little empty in here. Make one! 🍌</p></section>
+  <section class="panel"><p class="muted">No backends yet. It's a little empty in here. Make one!</p></section>
 {% endif %}
 {% endblock %}
