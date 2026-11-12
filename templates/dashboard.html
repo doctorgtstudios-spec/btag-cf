@@ -3,14 +3,46 @@
 {% block content %}
 <p class="eyebrow">CONTROL PANEL</p>
 <h1>Welcome, {{ g.user['username'] }}.</h1>
-<p class="lead">Your account is ready. Backend project creation and hosting controls are the next build stage.</p>
+<p class="lead">Create and manage your Gorilla Tag Flask backend projects.</p>
 <section class="panel">
-  <h2>Your backend URL</h2>
-  <code>https://btag-cf.com/{{ g.user['username'] }}</code>
-  <p class="muted">This route is reserved now; it will become live when the isolated backend runner and reverse proxy are deployed.</p>
+  <p class="eyebrow">YOUR PUBLIC ROUTE</p>
+  <h2>Backend URL pattern</h2>
+  <code>https://btag-cf.com/{{ g.user['username'] }}/api/</code>
+  <p class="muted">Your API routes will use this username-based path once server hosting is deployed.</p>
 </section>
-<section class="feature-grid">
-  <article class="panel"><h2>Local hosting</h2><p>Planned: run your Flask backend using a separate runner on your own computer.</p><span class="status">Coming next</span></article>
-  <article class="panel"><h2>Server hosting</h2><p>Planned: run your backend on BTag CF infrastructure at no charge, within fair-use limits.</p><span class="status">Coming next</span></article>
+<section class="panel">
+  <h2>Create a backend</h2>
+  <form method="post" action="{{ url_for('create_project') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="template_key">Backend template</label>
+    <select id="template_key" name="template_key">
+      <option value="gorilla_tag_full">Gorilla Tag — full backend template</option>
+      <option value="starter">Clean Flask starter</option>
+    </select>
+    <label for="title_id">PlayFab Title ID <span class="muted">(optional for now)</span></label>
+    <input id="title_id" name="title_id" maxlength="64" placeholder="Your own Title ID">
+    <label for="hosting_mode">Hosting preference</label>
+    <select id="hosting_mode" name="hosting_mode">
+      <option value="local">Local — run on my computer</option>
+      <option value="server">BTag CF server — free, when available</option>
+    </select>
+    <button class="button primary" type="submit">Create backend</button>
+  </form>
+  <p class="muted">Creating a project does not start code yet. Python will run only in an isolated worker after hosting infrastructure is ready.</p>
 </section>
+<h2>Your projects</h2>
+{% if projects %}
+  {% for project in projects %}
+  <section class="panel project">
+    <div>
+      <h3>{{ 'Gorilla Tag full backend' if project['template_key'] == 'gorilla_tag_full' else 'Flask starter' }}</h3>
+      <p class="muted">Project #{{ project['id'] }} · {{ project['hosting_mode']|title }} hosting · Title ID: {{ project['title_id'] or 'Not set' }}</p>
+      <code>https://btag-cf.com/{{ g.user['username'] }}/api/</code>
+    </div>
+    <span class="status">Created · Not running</span>
+  </section>
+  {% endfor %}
+{% else %}
+  <section class="panel"><p class="muted">No backends yet. Create your first project above.</p></section>
+{% endif %}
 {% endblock %}
