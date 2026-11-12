@@ -10,6 +10,9 @@ from config import Config
 from models import get_db, init_app as init_db_app
 
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,24}$")
+BACKEND_NAME_MAX = 48
+BACKEND_CODE_MAX = 100 * 1024
+STARTER_BACKEND = "from flask import Flask, jsonify\n\napp = Flask(__name__)\n\n@app.get(\"/api/health\")\ndef health():\n    return jsonify({\"status\": \"ok\", \"backend\": \"ALL UPDATE BACKEND\"})\n\n# Add your Gorilla Tag / PlayFab routes below.\n# Keep private keys and tokens in environment variables.\n"
 csrf = CSRFProtect()
 
 
@@ -37,6 +40,13 @@ def create_app():
                 return redirect(url_for("login"))
             return view(*args, **kwargs)
         return wrapped
+
+    def owned_project(project_id):
+        return get_db().execute(
+            "SELECT id, backend_name, backend_code, hosting_mode, created_at "
+            "FROM projects WHERE id = ? AND user_id = ?",
+            (project_id, g.user["id"]),
+        ).fetchone()
 
     @app.get("/")
     def index():
@@ -93,7 +103,8 @@ def create_app():
     @login_required
     def dashboard():
         projects = get_db().execute(
-            "SELECT id, title_id, template_key, hosting_mode, created_at FROM projects WHERE user_id = ? ORDER BY id DESC",
+            "SELECT id, backend_name, backend_code, hosting_mode, created_at "
+            "FROM projects WHERE user_id = ? ORDER BY id DESC",
             (g.user["id"],),
         ).fetchall()
         return render_template("dashboard.html", projects=projects)
@@ -101,23 +112,41 @@ def create_app():
     @app.post("/dashboard/projects")
     @login_required
     def create_project():
-        template_key = request.form.get("template_key", "gorilla_tag_full")
-        hosting_mode = request.form.get("hosting_mode", "local")
-        title_id = request.form.get("title_id", "").strip()
-        allowed_templates = {"gorilla_tag_full", "starter"}
-        if template_key not in allowed_templates or hosting_mode not in {"local", "server"}:
-            flash("Invalid project settings.", "error")
-            return redirect(url_for("dashboard"))
-        if len(title_id) > 64:
-            flash("Title ID must be 64 characters or fewer.", "error")
+        backend_name = request.form.get("backend_name", "ALL UPDATE BACKEND").strip()
+        if not backend_name or len(backend_name) > BACKEND_NAME_MAX:
+            flash("Give your backend a name (1–48 characters).", "error")
             return redirect(url_for("dashboard"))
         db = get_db()
         db.execute(
-            "INSERT INTO projects (user_id, title_id, template_key, hosting_mode) VALUES (?, ?, ?, ?)",
-            (g.user["id"], title_id, template_key, hosting_mode),
+            "INSERT INTO projects (user_id, backend_name, backend_code, template_key, hosting_mode) "
+            "VALUES (?, ?, ?, 'all_update_backend', 'server')",
+            (g.user["id"], backend_name, STARTER_BACKEND),
         )
         db.commit()
-        flash("Project created. Hosting will become available when the isolated runner is deployed.", "success")
+        flash("Backend created. You can rename it and edit its Python file below.", "success")
+        return redirect(url_for("dashboard"))
+
+    @app.post("/dashboard/projects/<int:project_id>/save")
+    @login_required
+    def save_project(project_id):
+        project = owned_project(project_id)
+        if project is None:
+            return "Not found", 404
+        backend_name = request.form.get("backend_name", "").strip()
+        backend_code = request.form.get("backend_code", "")
+        if not backend_name or len(backend_name) > BACKEND_NAME_MAX:
+            flash("Backend name must be 1–48 characters.", "error")
+        elif len(backend_code.encode("utf-8")) > BACKEND_CODE_MAX:
+            flash("The Python file is too large (maximum 100 KB).", "error")
+        else:
+            db = get_db()
+            db.execute(
+                "UPDATE projects SET backend_name = ?, backend_code = ? "
+                "WHERE id = ? AND user_id = ?",
+                (backend_name, backend_code, project_id, g.user["id"]),
+            )
+            db.commit()
+            flash("Backend name and Python file saved.", "success")
         return redirect(url_for("dashboard"))
 
     @app.get("/<username>")
