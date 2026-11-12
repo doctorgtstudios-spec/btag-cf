@@ -8,17 +8,17 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="{{ url_for('index') }}">BTag <span>CF</span></a>
+    <a class="brand" href="{{ url_for('index') }}">🐒 BTag CF</a>
     <nav>
       {% if g.user %}
-        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('dashboard') }}">my stuff</a>
         <form method="post" action="{{ url_for('logout') }}" class="inline">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="nav-button" type="submit">Log out</button>
+          <button class="nav-button" type="submit">escape</button>
         </form>
       {% else %}
-        <a href="{{ url_for('login') }}">Log in</a>
-        <a class="nav-cta" href="{{ url_for('register') }}">Create account</a>
+        <a href="{{ url_for('login') }}">log in</a>
+        <a class="nav-cta" href="{{ url_for('register') }}">join the monkeys</a>
       {% endif %}
     </nav>
   </header>
@@ -28,6 +28,6 @@
     {% endfor %}
     {% block content %}{% endblock %}
   </main>
-  <footer>BTag CF · Flask backend hosting control panel</footer>
+  <footer>made for silly monkeys · BTag CF</footer>
 </body>
 </html>
