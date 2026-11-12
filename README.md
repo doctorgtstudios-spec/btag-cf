@@ -44,3 +44,28 @@ Uploaded or template Python must never execute in the main Flask web process. Ea
 ## Backend template
 
 The previously supplied Gorilla Tag backend is the selected full template. It needs a cleanup/configuration pass before it can be run: unresolved quest/certificate/package configuration must remain explicitly unconfigured rather than fabricated, external calls need timeouts and validation, and credentials must be injected privately at runtime. The source should not be executed in the web process.
+
+## Run the Python web server
+
+For local development:
+
+```bash
+pip install -r requirements.txt
+python app.py
+```
+
+For a production container:
+
+```bash
+docker build -t btag-cf .
+docker run -d --name btag-cf \
+  -p 8000:8000 \
+  -v btag-cf-data:/data \
+  -e SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')" \
+  -e COOKIE_SECURE=1 \
+  btag-cf
+```
+
+Put HTTPS in front of the container using a reverse proxy (an example Nginx site is in `deploy/nginx.conf`). Configure the domain's DNS at your hosting provider to point to that server, and enable TLS. Keep the `/data` volume persistent so accounts and projects survive container restarts.
+
+The Docker image runs as a non-root user and starts Flask through Gunicorn. This container currently runs the **control panel only**, not customers' uploaded backend code. Do not publish it without setting a strong private `SECRET_KEY`, HTTPS, persistent storage, backups, and an operational plan for updates and abuse prevention.
