@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — BTag CF{% endblock %}
+{% block content %}
+<p class="eyebrow">CONTROL PANEL</p>
+<h1>Welcome, {{ g.user['username'] }}.</h1>
+<p class="lead">Your account is ready. Backend project creation and hosting controls are the next build stage.</p>
+<section class="panel">
+  <h2>Your backend URL</h2>
+  <code>https://btag-cf.com/{{ g.user['username'] }}</code>
+  <p class="muted">This route is reserved now; it will become live when the isolated backend runner and reverse proxy are deployed.</p>
+</section>
+<section class="feature-grid">
+  <article class="panel"><h2>Local hosting</h2><p>Planned: run your Flask backend using a separate runner on your own computer.</p><span class="status">Coming next</span></article>
+  <article class="panel"><h2>Server hosting</h2><p>Planned: run your backend on BTag CF infrastructure at no charge, within fair-use limits.</p><span class="status">Coming next</span></article>
+</section>
+{% endblock %}
