@@ -3,7 +3,7 @@ import sqlite3
 from functools import wraps
 
 from flask import Flask, flash, g, redirect, render_template, request, session, url_for
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from config import Config
@@ -17,7 +17,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     csrf.init_app(app)
-    app.context_processor(lambda: {"csrf_token": __import__("flask_wtf.csrf", fromlist=["generate_csrf"]).generate_csrf})
+    app.context_processor(lambda: {"csrf_token": generate_csrf})
     init_db_app(app)
 
     @app.before_request
