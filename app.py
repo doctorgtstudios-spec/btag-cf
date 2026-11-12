@@ -1,4 +1,5 @@
 import re
+import sqlite3
 from functools import wraps
 
 from flask import Flask, flash, g, redirect, render_template, request, session, url_for
@@ -11,10 +12,12 @@ from models import get_db, init_app as init_db_app
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,24}$")
 csrf = CSRFProtect()
 
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     csrf.init_app(app)
+    app.context_processor(lambda: {"csrf_token": __import__("flask_wtf.csrf", fromlist=["generate_csrf"]).generate_csrf})
     init_db_app(app)
 
     @app.before_request
@@ -59,9 +62,9 @@ def create_app():
                     session.clear()
                     session["user_id"] = cursor.lastrowid
                     return redirect(url_for("dashboard"))
-                except Exception:
+                except sqlite3.IntegrityError:
                     db.rollback()
-                    flash("That username may already be taken.", "error")
+                    flash("That username is already taken.", "error")
         return render_template("auth.html", mode="register")
 
     @app.route("/login", methods=["GET", "POST"])
@@ -89,12 +92,36 @@ def create_app():
     @app.get("/dashboard")
     @login_required
     def dashboard():
-        return render_template("dashboard.html")
+        projects = get_db().execute(
+            "SELECT id, title_id, template_key, hosting_mode, created_at FROM projects WHERE user_id = ? ORDER BY id DESC",
+            (g.user["id"],),
+        ).fetchall()
+        return render_template("dashboard.html", projects=projects)
+
+    @app.post("/dashboard/projects")
+    @login_required
+    def create_project():
+        template_key = request.form.get("template_key", "gorilla_tag_full")
+        hosting_mode = request.form.get("hosting_mode", "local")
+        title_id = request.form.get("title_id", "").strip()
+        allowed_templates = {"gorilla_tag_full", "starter"}
+        if template_key not in allowed_templates or hosting_mode not in {"local", "server"}:
+            flash("Invalid project settings.", "error")
+            return redirect(url_for("dashboard"))
+        if len(title_id) > 64:
+            flash("Title ID must be 64 characters or fewer.", "error")
+            return redirect(url_for("dashboard"))
+        db = get_db()
+        db.execute(
+            "INSERT INTO projects (user_id, title_id, template_key, hosting_mode) VALUES (?, ?, ?, ?)",
+            (g.user["id"], title_id, template_key, hosting_mode),
+        )
+        db.commit()
+        flash("Project created. Hosting will become available when the isolated runner is deployed.", "success")
+        return redirect(url_for("dashboard"))
 
     @app.get("/<username>")
     def public_backend_placeholder(username):
-        # Reserved for reverse-proxy routing to an isolated backend worker.
-        # Never import or execute a user's uploaded Python file in this process.
         if not USERNAME_RE.fullmatch(username):
             return "Not found", 404
         return render_template("backend_placeholder.html", username=username), 501
@@ -104,6 +131,7 @@ def create_app():
         return {"status": "ok"}
 
     return app
+
 
 app = create_app()
 
