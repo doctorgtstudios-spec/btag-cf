@@ -11,5 +11,7 @@ services:
         generateValue: true
       - key: COOKIE_SECURE
         value: "1"
-      - key: DATABASE_PATH
-        value: /tmp/btag-cf.sqlite3
+      # Add your persistent PostgreSQL connection string in Render's
+      # Environment tab. Do not commit database credentials here.
+      - key: DATABASE_URL
+        sync: false
