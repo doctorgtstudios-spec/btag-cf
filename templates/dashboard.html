@@ -3,45 +3,38 @@
 {% block content %}
 <p class="eyebrow">MONKEY HQ</p>
 <h1>yo, {{ g.user['username'] }}!</h1>
-<p class="lead">This is your little corner of the jungle.</p>
+<p class="lead">Your backends, your names, your Python files.</p>
 <section class="panel">
-  <h2>your future backend link</h2>
-  <code>https://btag-cf.com/{{ g.user['username'] }}/api/</code>
-  <p class="muted">This link is a preview for now. Backend hosting isn't turned on yet.</p>
+  <h2>your backend link</h2>
+  <code>https://btag-cf.com/{{ g.user['username'] }}/</code>
+  <p class="muted">This is the address reserved for your account. Public hosting is not connected yet.</p>
 </section>
 <section class="panel">
   <h2>make a backend</h2>
   <form method="post" action="{{ url_for('create_project') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label for="template_key">what are we building?</label>
-    <select id="template_key" name="template_key">
-      <option value="gorilla_tag_full">Gorilla Tag backend</option>
-      <option value="starter">Blank Flask starter</option>
-    </select>
-    <label for="title_id">PlayFab Title ID <span class="muted">(you can add it later)</span></label>
-    <input id="title_id" name="title_id" maxlength="64" placeholder="your Title ID">
-    <label for="hosting_mode">where should it run?</label>
-    <select id="hosting_mode" name="hosting_mode">
-      <option value="local">on my computer</option>
-      <option value="server">on BTag CF (not ready yet)</option>
-    </select>
-    <button class="button primary" type="submit">make the thing →</button>
+    <label for="backend_name">what should your backend be called?</label>
+    <input id="backend_name" name="backend_name" maxlength="48" value="ALL UPDATE BACKEND" required>
+    <button class="button primary" type="submit">make the backend</button>
   </form>
-  <p class="muted">Making a project saves its settings. It doesn't start Python yet. We're still building the safe hosting bit.</p>
 </section>
 <h2>your backends</h2>
 {% if projects %}
   {% for project in projects %}
   <section class="panel project">
-    <div>
-      <h3>{{ 'Gorilla Tag backend' if project['template_key'] == 'gorilla_tag_full' else 'Flask starter' }}</h3>
-      <p class="muted">#{{ project['id'] }} · {{ project['hosting_mode']|title }} · Title ID: {{ project['title_id'] or 'not added' }}</p>
-      <code>https://btag-cf.com/{{ g.user['username'] }}/api/</code>
-    </div>
-    <span class="status">saved · not running</span>
+    <form method="post" action="{{ url_for('save_project', project_id=project['id']) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label for="backend_name_{{ project['id'] }}">backend name</label>
+      <input id="backend_name_{{ project['id'] }}" name="backend_name" maxlength="48" value="{{ project['backend_name'] }}" required>
+      <label for="backend_code_{{ project['id'] }}">your backend.py</label>
+      <textarea id="backend_code_{{ project['id'] }}" name="backend_code" rows="18" spellcheck="false" autocapitalize="off">{{ project['backend_code'] }}</textarea>
+      <button class="button primary" type="submit">save backend</button>
+    </form>
+    <p class="muted">Backend #{{ project['id'] }} · saved on BTag CF</p>
+    <span class="status">saved · hosting not connected</span>
   </section>
   {% endfor %}
 {% else %}
-  <section class="panel"><p class="muted">No backends yet. It's a little empty in here. Make one!</p></section>
+  <section class="panel"><p class="muted">No backends yet. Make one above!</p></section>
 {% endif %}
 {% endblock %}
