@@ -35,4 +35,8 @@ Set a long, random `SECRET_KEY` before deployment. Do not commit real PlayFab ke
 
 A production deployment needs persistent database storage, HTTPS, a reverse proxy, and a container/process manager. Each user's Python code must run in a separate isolated worker with resource limits, restricted filesystem/network access, non-root execution, and controlled dependencies. Never execute uploaded code inside the main Flask web process.
 
-The current Render preview runs the control panel only. The free preview's temporary filesystem can lose saved accounts and code after restarts or redeploys. Do not treat it as production hosting.
+The control panel supports PostgreSQL through the `DATABASE_URL` environment variable and keeps SQLite for local development. On Render, create a PostgreSQL database and add its **Internal Database URL** as the web service's `DATABASE_URL` environment variable. The app creates its tables automatically on startup.
+
+**Important:** The current `/tmp` SQLite database is temporary. Existing accounts stored there will not automatically move to PostgreSQL; users will need to register again after the database is connected. Back up/export any data you still need before changing databases.
+
+Render's free web service filesystem is temporary, and Render's free Postgres databases expire after 30 days. For accounts that must persist indefinitely, use a database plan without that expiry (or another managed PostgreSQL provider with durable storage). Do not use the free Render Postgres database as permanent account storage.
