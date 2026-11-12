@@ -2,23 +2,29 @@
 
 A Flask-based control panel for Gorilla Tag / PlayFab-compatible backend projects.
 
-## Status
+## Current status
 
-This repository starts with the web application foundation. Backend hosting is intentionally **not enabled yet**: uploaded Python files are executable code and must never run inside the main Flask web process. Server hosting requires an isolated worker/container runner and deployment infrastructure; local hosting will use a separate runner on the user's computer.
+The first control-panel stage includes username registration/login, a dashboard, and project creation with a Gorilla Tag full-backend template selection or a clean Flask starter. Project creation is metadata only: **backend execution and public API hosting are not enabled yet**.
 
-## Planned features
+## URL structure
 
-- Username registration and login
-- Per-user routes such as `/<username>/api/PlayFabAuthentication`, `CachePlayfabId`, and `TitleData`
-- Backend template selection and user configuration
-- Free local hosting and free server hosting, subject to fair-use resource limits
-- Python Flask backends only; no JavaScript backend runtime
+A user's eventual backend base URL is:
 
-## Development setup
+`https://btag-cf.com/<username>/`
+
+API routes will be exposed below that prefix, for example:
+
+- `/<username>/api/PlayFabAuthentication`
+- `/<username>/api/CachePlayfabId`
+- `/<username>/api/TitleData`
+
+The current Flask app deliberately returns a placeholder for public backend paths until a reverse proxy and isolated worker manager are deployed.
+
+## Development
 
 ```bash
 python -m venv .venv
-# Windows: .venv\Scripts\activate
+# Windows: .venv\\Scripts\\activate
 # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
@@ -27,8 +33,14 @@ python app.py
 
 Open http://127.0.0.1:5000.
 
-Set a long, random `SECRET_KEY` in `.env` before deploying. Do not commit real secrets, PlayFab secret keys, Oculus tokens, or user backend files.
+Set a long, random `SECRET_KEY` before deployment. Do not commit real PlayFab keys, Oculus tokens, Discord webhooks, or user backend files.
 
-## Deployment notes
+## Hosting architecture
 
-GitHub Pages cannot run Flask. Production requires a Python-capable server, a reverse proxy for user backend paths, persistent storage, and an isolated process/container manager. Do not expose the development server to the public internet.
+GitHub Pages is static hosting and cannot run Flask. The custom domain `btag-cf.com` needs DNS pointed at a Python-capable host. Production also requires persistent database storage, HTTPS, a reverse proxy that maps each username prefix to its worker, and a container/process manager.
+
+Uploaded or template Python must never execute in the main Flask web process. Each backend needs an isolated worker with resource limits, restricted filesystem/network access, non-root execution, and controlled dependencies. Both hosting modes can be offered without user fees, but free server hosting still requires infrastructure and fair-use limits.
+
+## Backend template
+
+The previously supplied Gorilla Tag backend is the selected full template. It needs a cleanup/configuration pass before it can be run: unresolved quest/certificate/package configuration must remain explicitly unconfigured rather than fabricated, external calls need timeouts and validation, and credentials must be injected privately at runtime. The source should not be executed in the web process.
