@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Create account' if mode == 'register' else 'Log in' }} — BTag CF{% endblock %}
+{% block title %}{{ 'join the monkeys' if mode == 'register' else 'welcome back' }} — BTag CF{% endblock %}
 {% block content %}
 <section class="form-panel">
-  <p class="eyebrow">YOUR BTag CF ACCOUNT</p>
-  <h1>{{ 'Create account' if mode == 'register' else 'Welcome back' }}</h1>
+  <p class="eyebrow">{{ '🐒 NEW MONKEY DETECTED' if mode == 'register' else '👋 OI, YOU AGAIN' }}</p>
+  <h1>{{ 'join the troop' if mode == 'register' else 'welcome back' }}</h1>
   <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>Username</label>
-    <input name="username" minlength="3" maxlength="24" pattern="[A-Za-z0-9_]+" autocomplete="username" required>
-    <label>Password</label>
-    <input type="password" name="password" minlength="10" autocomplete="{{ 'new-password' if mode == 'register' else 'current-password' }}" required>
-    <button class="button primary full" type="submit">{{ 'Create account' if mode == 'register' else 'Log in' }}</button>
+    <label>username</label>
+    <input name="username" minlength="3" maxlength="24" pattern="[A-Za-z0-9_]+" autocomplete="username" placeholder="monkey123" required>
+    <label>password</label>
+    <input type="password" name="password" minlength="10" autocomplete="{{ 'new-password' if mode == 'register' else 'current-password' }}" placeholder="keep it secret" required>
+    <button class="button primary full" type="submit">{{ 'LET ME IN' if mode == 'register' else 'IM BACK' }}</button>
   </form>
-  <p class="muted">{% if mode == 'register' %}Already registered? <a href="{{ url_for('login') }}">Log in</a>{% else %}New here? <a href="{{ url_for('register') }}">Create an account</a>{% endif %}</p>
+  <p class="muted">{% if mode == 'register' %}Already in the tree? <a href="{{ url_for('login') }}">log in</a>{% else %}New around here? <a href="{{ url_for('register') }}">make an account</a>{% endif %}</p>
 </section>
 {% endblock %}
