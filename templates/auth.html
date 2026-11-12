@@ -2,7 +2,7 @@
 {% block title %}{{ 'join the monkeys' if mode == 'register' else 'welcome back' }} — BTag CF{% endblock %}
 {% block content %}
 <section class="form-panel">
-  <p class="eyebrow">{{ '🐒 NEW MONKEY DETECTED' if mode == 'register' else '👋 OI, YOU AGAIN' }}</p>
+  <p class="eyebrow">{{ 'NEW MONKEY DETECTED' if mode == 'register' else 'OI, YOU AGAIN' }}</p>
   <h1>{{ 'join the troop' if mode == 'register' else 'welcome back' }}</h1>
   <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
