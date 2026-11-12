@@ -65,14 +65,14 @@ def create_app():
                 db = get_db()
                 try:
                     cursor = db.execute(
-                        "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+                        "INSERT INTO users (username, password_hash) VALUES (?, ?) RETURNING id",
                         (username, generate_password_hash(password)),
                     )
                     db.commit()
                     session.clear()
-                    session["user_id"] = cursor.lastrowid
+                    session["user_id"] = cursor.fetchone()["id"]
                     return redirect(url_for("dashboard"))
-                except sqlite3.IntegrityError:
+                except (sqlite3.IntegrityError, psycopg.errors.UniqueViolation):
                     db.rollback()
                     flash("That username is already taken.", "error")
         return render_template("auth.html", mode="register")
